@@ -124,6 +124,7 @@ public:
 
         return histo_ele_SF->GetBinContent(x_bin,y_bin) + static_cast<int>(ele_scale) * histo_ele_SF->GetBinError(x_bin,y_bin);
     }
+
     float getXTrgSF_fromRootFile(const LorentzVectorM& leg_p4, UncSource source, UncScale scale, bool isMuTau) const
     {
         UncScale xTrg_scale = UncScale::Central;
@@ -144,14 +145,15 @@ public:
             return 1.0;
         }
         const auto x_axis = hist_xTrg->GetXaxis();
-        int x_bin = x_axis->FindFixBin(std::abs(leg_p4.Eta()));
+        int x_bin = x_axis->FindFixBin(leg_p4.Pt());
         if(x_bin < 1)
             x_bin =1;
         if( x_bin > x_axis->GetNbins() )
             x_bin = x_axis->GetNbins();
         const auto y_axis = hist_xTrg->GetYaxis();
 
-        int y_bin = y_axis->FindFixBin(leg_p4.Pt());
+        auto eta_value = isMuTau ? std::abs(leg_p4.Eta()) : leg_p4.Eta();
+        int y_bin = y_axis->FindFixBin(eta_value);
         if(y_bin < 1)
             y_bin =1;
         if( y_bin > y_axis->GetNbins() )

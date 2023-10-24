@@ -70,9 +70,6 @@ def Initialize(config, isData, load_corr_lib=True, load_pu=True, load_tau=True, 
     if load_btag:
         from .btag import bTagCorrProducer
         btag = bTagCorrProducer(period_names[period], loadBTagEff)
-    if load_trg:
-        from .triggers import TrigCorrProducer
-        trg = TrigCorrProducer(period_names[period], config)
     if load_met:
         from .met import METCorrProducer
         met = METCorrProducer()
@@ -85,6 +82,9 @@ def Initialize(config, isData, load_corr_lib=True, load_pu=True, load_tau=True, 
     if load_puJetID:
         from .puJetID import puJetIDCorrProducer
         puJetID = puJetIDCorrProducer(period_names[period])
+    if load_trg:
+        from .triggers import TrigCorrProducer
+        trg = TrigCorrProducer(period_names[period], config)
     initialized = True
 
 def applyScaleUncertainties(df):
