@@ -19,7 +19,8 @@ class TauCorrProducer:
         jsonFile = TauCorrProducer.jsonPath.format(period)
         self.deepTauVersion = f"""DeepTau{deepTauVersions[config["deepTauVersion"]]}v{config["deepTauVersion"]}"""
         if self.deepTauVersion=='DeepTau2018v2p5':
-            jsonFile = f"Corrections/data/TAU/{period}/tau_DeepTau2018v2p5_UL2018.json"
+            jsonFile_rel = f"Corrections/data/TAU/{period}/tau_DeepTau2018v2p5_{period}.json"
+            jsonFile = os.path.join(os.environ['ANALYSIS_PATH'],jsonFile_rel)
         if not TauCorrProducer.initialized:
             headers_dir = os.path.dirname(os.path.abspath(__file__))
             header_path = os.path.join(headers_dir, "tau.h")

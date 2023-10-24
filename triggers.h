@@ -14,6 +14,14 @@ public:
         ditau_3Prong = 2,
         singleMu = 3,
         singleEle = 4,
+        etau_ele = 5,
+        etau_DM0 = 6,
+        etau_DM1 = 7,
+        etau_3Prong = 8,
+        mutau_mu = 9,
+        mutau_DM0 = 10,
+        mutau_DM1 = 11,
+        mutau_3Prong = 12,
     };
     using wpsMapType = std::map<Channel, std::vector<std::pair<std::string, int> > >;
     static bool isTwoProngDM(int dm)
@@ -45,13 +53,21 @@ public:
             if(source == UncSource::ditau_DM0 && decayMode == 0) return true;
             if(source == UncSource::ditau_DM1 && ( decayMode == 1 || decayMode == 2 )) return true;
             if(source == UncSource::ditau_3Prong && ( decayMode == 10 || decayMode == 11 )) return true;
+
+            if(source == UncSource::mutau_DM0 && decayMode == 0) return true;
+            if(source == UncSource::mutau_DM1 && ( decayMode == 1 || decayMode == 2 )) return true;
+            if(source == UncSource::mutau_3Prong && ( decayMode == 10 || decayMode == 11 )) return true;
+
+            if(source == UncSource::etau_DM0 && decayMode == 0) return true;
+            if(source == UncSource::etau_DM1 && ( decayMode == 1 || decayMode == 2 )) return true;
+            if(source == UncSource::etau_3Prong && ( decayMode == 10 || decayMode == 11 )) return true;
         }
         return false;
     }
 
     TrigCorrProvider(const std::string& tauFileName, const std::string& deepTauVersion, const wpsMapType& wps_map,
                     const std::string& muFileName, const std::string& period, const std::string& mu_trigger,
-                    const std::string& eleFileName) :
+                    const std::string& eleFileName, const std::string& eTauFileName, const std::string& muTauFileName) :
         tau_corrections_(CorrectionSet::from_file(tauFileName)),
         tau_trg_(tau_corrections_->at("tau_trigger")),
         deepTauVersion_(deepTauVersion),
@@ -60,6 +76,12 @@ public:
         mu_trg_(mu_corrections_->at(mu_trigger)),
         period_(period)
     {
+
+        auto eTauFile = root_ext::OpenRootFile(eTauFileName);
+        histo_eTau_ele_SF.reset(root_ext::ReadCloneObject<TH2>(*eTauFile, "SF2D", "SF2D", true));
+
+        auto muTauFile = root_ext::OpenRootFile(muTauFileName);
+        histo_muTau_mu_SF.reset(root_ext::ReadCloneObject<TH2>(*muTauFile, "SF2D", "SF2D", true));
 
         auto eleFile = root_ext::OpenRootFile(eleFileName);
         histo_ele_SF.reset(root_ext::ReadCloneObject<TH2>(*eleFile, "EGamma_SF2D", "EGamma_SF2D", true));
@@ -102,6 +124,41 @@ public:
 
         return histo_ele_SF->GetBinContent(x_bin,y_bin) + static_cast<int>(ele_scale) * histo_ele_SF->GetBinError(x_bin,y_bin);
     }
+    float getXTrgSF_fromRootFile(const LorentzVectorM& leg_p4, UncSource source, UncScale scale, bool isMuTau) const
+    {
+        UncScale xTrg_scale = UncScale::Central;
+        if(source == UncSource::mutau_mu && isMuTau) {xTrg_scale = scale;}
+        if(source == UncSource::etau_ele && !isMuTau) {xTrg_scale = scale;}
+        const TH2* hist_xTrg = nullptr;
+
+        if (isMuTau) {
+            if (histo_muTau_mu_SF) {
+                hist_xTrg = histo_muTau_mu_SF.get();
+            }
+        } else {
+            if (histo_eTau_ele_SF) {
+                hist_xTrg = histo_eTau_ele_SF.get();
+            }
+        }
+        if (!hist_xTrg) {
+            return 1.0;
+        }
+        const auto x_axis = hist_xTrg->GetXaxis();
+        int x_bin = x_axis->FindFixBin(std::abs(leg_p4.Eta()));
+        if(x_bin < 1)
+            x_bin =1;
+        if( x_bin > x_axis->GetNbins() )
+            x_bin = x_axis->GetNbins();
+        const auto y_axis = hist_xTrg->GetYaxis();
+
+        int y_bin = y_axis->FindFixBin(leg_p4.Pt());
+        if(y_bin < 1)
+            y_bin =1;
+        if( y_bin > y_axis->GetNbins() )
+            y_bin = y_axis->GetNbins();
+
+        return hist_xTrg->GetBinContent(x_bin,y_bin) + static_cast<int>(xTrg_scale) * hist_xTrg->GetBinError(x_bin,y_bin);
+    }
 
 private:
     std::unique_ptr<CorrectionSet> tau_corrections_;
@@ -112,7 +169,11 @@ private:
     Correction::Ref mu_trg_;
     const std::string period_;
     std::unique_ptr<TH2> histo_ele_SF;
+    std::unique_ptr<TH2> histo_eTau_ele_SF;
+    std::unique_ptr<TH2> histo_muTau_mu_SF;
 
 } ;
+
+
 
 } // namespace correction

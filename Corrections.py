@@ -67,12 +67,12 @@ def Initialize(config, isData, load_corr_lib=True, load_pu=True, load_tau=True, 
     if load_jet:
         from .jet import JetCorrProducer
         jet = JetCorrProducer(period_names[period],isData)
-    if load_trg:
-        from .triggers import TrigCorrProducer
-        trg = TrigCorrProducer(period_names[period], config)
     if load_btag:
         from .btag import bTagCorrProducer
         btag = bTagCorrProducer(period_names[period], loadBTagEff)
+    if load_trg:
+        from .triggers import TrigCorrProducer
+        trg = TrigCorrProducer(period_names[period], config)
     if load_met:
         from .met import METCorrProducer
         met = METCorrProducer()
