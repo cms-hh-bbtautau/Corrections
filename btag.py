@@ -3,8 +3,17 @@ import ROOT
 from .CorrectionsCore import *
 from Common.Utilities import WorkingPointsbTag
 import yaml
-
-
+# https://twiki.cern.ch/twiki/bin/viewauth/CMS/BTagShapeCalibration
+# https://twiki.cern.ch/twiki/bin/view/CMS/BTagCalibration
+# https://twiki.cern.ch/twiki/bin/view/CMS/BTagSFMethods
+# https://github.com/cms-btv-pog
+# https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration/-/tree/master/POG/BTV
+# https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation
+# https://cms-talk.web.cern.ch/t/ul-b-tagging-sf-update/20209/2
+# https://gitlab.cern.ch/cms-btv/btv-json-sf/-/tree/master/data/UL2016preVFP
+# https://github.com/hh-italian-group/h-tautau/blob/master/McCorrections/src/BTagWeight.cpp
+# https://btv-wiki.docs.cern.ch/PerformanceCalibration/SFUncertaintiesAndCorrelations/working-point-based-sfs-fixedwp-sfs
+# https://btv-wiki.docs.cern.ch/PerformanceCalibration/fixedWPSFRecommendations/
 
 class bTagCorrProducer:
     jsonPath = "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/BTV/{}/btagging.json.gz"

@@ -1,6 +1,15 @@
 import os
 import ROOT
 from .CorrectionsCore import *
+# https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaUL2016To2018
+# https://github.com/cms-egamma/ScaleFactorsJSON?tab=readme-ov-file
+# https://twiki.cern.ch/twiki/bin/view/CMS/EgammaSFJSON
+# https://twiki.cern.ch/twiki/bin/view/CMS/EgammaPOG
+# https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaUL2016To2018#Access_of_SFs_using_JSON_files
+# https://twiki.cern.ch/twiki/bin/view/CMS/EgHLTScaleFactorMeasurements
+# https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaUL2016To2018#Access_of_SFs_using_JSON_files
+# https://twiki.cern.ch/twiki/bin/view/CMS/EGMHLTRun3RecommendationForPAG
+# https://twiki.cern.ch/twiki/bin/view/CMS/ElectronScaleFactorsRun2#EGM_certified_vs_custom_self_pro
 
 class EleCorrProducer:
     EleID_JsonPath = "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/EGM/{}/electron.json.gz"

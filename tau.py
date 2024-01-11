@@ -1,6 +1,10 @@
 import os
 import ROOT
 from .CorrectionsCore import *
+# https://twiki.cern.ch/twiki/bin/viewauth/CMS/TauIDRecommendationForRun2
+# https://indico.cern.ch/event/1062355/contributions/4466122/attachments/2287465/3888179/Update2016ULsf.pdf
+# https://github.com/cms-tau-pog/TauTriggerSFs/tree/master/data
+# https://github.com/cms-tau-pog/TauTriggerSFs/tree/run2_SFs
 
 deepTauVersions = {"2p1":"2017", "2p5":"2018"}
 

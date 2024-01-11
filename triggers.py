@@ -3,7 +3,12 @@ import ROOT
 from .CorrectionsCore import *
 from Common.Utilities import *
 import yaml
-
+# https://twiki.cern.ch/twiki/bin/view/CMS/EgHLTScaleFactorMeasurements
+year_singleElefile = {
+    "2018_UL":"sf_el_2018_HLTEle24Tau30.root",
+    "2017_UL":"sf_el_2017_HLTEle32.root",
+    "2016preVFP_UL":"sf_el_2016pre_HLTEle25.root",
+    "2016postVFP_UL":"sf_el_2016post_HLTEle25.root"}
 
 year_xTrg_eTaufile = {
     "2018_UL":"sf_el_2018_HLTEle24Tau30.root",
@@ -16,10 +21,11 @@ year_xTrg_muTaufile = {
     "2017_UL":"sf_mu_2017_HLTMu20Tau27.root",
     "2016preVFP_UL":"sf_mu_2016pre_HLTMu20Tau27.root",
     "2016postVFP_UL":"sf_mu_2016post_HLTMu20Tau27.root"}
+
 class TrigCorrProducer:
     TauTRG_jsonPath = "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/TAU/{}/tau.json.gz"
     MuTRG_jsonPath = "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/{}/muon_Z.json.gz"
-    eTRG_jsonPath = "Corrections/data/EGM/{}/trig.root"
+    eTRG_jsonPath = "Corrections/data/TRG/{0}/{1}.root"
     mu_XTrg_jsonPath = "Corrections/data/TRG/{0}/{1}"
     e_XTrg_jsonPath = "Corrections/data/TRG/{0}/{1}"
     initialized = False
@@ -37,7 +43,7 @@ class TrigCorrProducer:
         jsonFile_Tau = TrigCorrProducer.TauTRG_jsonPath.format(period)
         jsonFile_Mu = TrigCorrProducer.MuTRG_jsonPath.format(period)
         self.deepTauVersion = f"""DeepTau{deepTauVersions[config["deepTauVersion"]]}v{config["deepTauVersion"]}"""
-        jsonFile_e = os.path.join(os.environ['ANALYSIS_PATH'],TrigCorrProducer.eTRG_jsonPath.format(period))
+        jsonFile_e = os.path.join(os.environ['ANALYSIS_PATH'],TrigCorrProducer.eTRG_jsonPath.format(period, year_singleElefile[period]))
         jsonFile_mu_XTrg = os.path.join(os.environ['ANALYSIS_PATH'],TrigCorrProducer.mu_XTrg_jsonPath.format(period,year_xTrg_muTaufile[period]))
         jsonFile_e_XTrg = os.path.join(os.environ['ANALYSIS_PATH'],TrigCorrProducer.e_XTrg_jsonPath.format(period,year_xTrg_eTaufile[period]))
         if self.deepTauVersion=='DeepTau2018v2p5':
@@ -129,7 +135,6 @@ class TrigCorrProducer:
                             df = df.Define(f"{branch_name}", f"static_cast<float>({branch_name}_double)")
                         SF_branches.append(f"{branch_name}")
 
-
         trg_name = 'mutau'
         if trg_name in trigger_names:
             sf_sources = TrigCorrProducer.SFSources[trg_name] if return_variations else []
@@ -163,7 +168,6 @@ class TrigCorrProducer:
                         else:
                             df = df.Define(f"{branch_name}", f"static_cast<float>({branch_name}_double)")
                         SF_branches.append(f"{branch_name}")
-
 
         trg_name = 'etau'
         if trg_name in trigger_names:
