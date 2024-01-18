@@ -53,11 +53,13 @@ public:
             if(source == UncSource::ditau_DM0 && decayMode == 0) return true;
             if(source == UncSource::ditau_DM1 && ( decayMode == 1 || decayMode == 2 )) return true;
             if(source == UncSource::ditau_3Prong && ( decayMode == 10 || decayMode == 11 )) return true;
-
+        }
+        if(trg_type=="mutau"){
             if(source == UncSource::mutau_DM0 && decayMode == 0) return true;
             if(source == UncSource::mutau_DM1 && ( decayMode == 1 || decayMode == 2 )) return true;
             if(source == UncSource::mutau_3Prong && ( decayMode == 10 || decayMode == 11 )) return true;
-
+        }
+        if(trg_type=="etau"){
             if(source == UncSource::etau_DM0 && decayMode == 0) return true;
             if(source == UncSource::etau_DM1 && ( decayMode == 1 || decayMode == 2 )) return true;
             if(source == UncSource::etau_3Prong && ( decayMode == 10 || decayMode == 11 )) return true;
@@ -66,14 +68,13 @@ public:
     }
 
     TrigCorrProvider(const std::string& tauFileName, const std::string& deepTauVersion, const wpsMapType& wps_map,
-                    const std::string& muFileName, const std::string& period, const std::string& mu_trigger,
-                    const std::string& eleFileName, const std::string& eTauFileName, const std::string& muTauFileName) :
+                    const std::string& muFileName, const std::string& period, const std::string& mu_trigger, const std::string& hist_mu_name, const std::string& eleFileName, const std::string& eTauFileName, const std::string& muTauFileName) :
         tau_corrections_(CorrectionSet::from_file(tauFileName)),
         tau_trg_(tau_corrections_->at("tau_trigger")),
         deepTauVersion_(deepTauVersion),
         wps_map_(wps_map),
-        mu_corrections_(CorrectionSet::from_file(muFileName)),
-        mu_trg_(mu_corrections_->at(mu_trigger)),
+        //mu_corrections_(CorrectionSet::from_file(muFileName)),
+        //mu_trg_(mu_corrections_->at(mu_trigger)),
         period_(period)
     {
 
@@ -84,7 +85,10 @@ public:
         histo_muTau_mu_SF.reset(root_ext::ReadCloneObject<TH2>(*muTauFile, "SF2D", "SF2D", true));
 
         auto eleFile = root_ext::OpenRootFile(eleFileName);
-        histo_ele_SF.reset(root_ext::ReadCloneObject<TH2>(*eleFile, "EGamma_SF2D", "EGamma_SF2D", true));
+        histo_ele_SF.reset(root_ext::ReadCloneObject<TH2>(*eleFile, "SF2D", "SF2D", true));
+
+        auto muFile = root_ext::OpenRootFile(muFileName);
+        histo_mu_SF.reset(root_ext::ReadCloneObject<TH2>(*muFile, hist_mu_name.c_str(), hist_mu_name.c_str(), true));
 
     }
 
@@ -97,12 +101,34 @@ public:
         const std::string& scale_str = getTauScaleStr(tau_scale);
         return tau_trg_->evaluate({Tau_p4.pt(), Tau_decayMode, trg_type, wpVSjet,"sf", scale_str});
     }
-
+    /*
     float getMuSF_fromCorrLib(const LorentzVectorM& Mu_p4, UncSource source, UncScale scale) const
     {
         const UncScale mu_scale = source== UncSource::singleMu ? scale : UncScale::Central;
         const std::string& scale_str = getMuScaleStr(mu_scale);
         return mu_trg_->evaluate({period_, std::abs(Mu_p4.Eta()), Mu_p4.Pt(), scale_str});
+    }
+    */
+    //float getEfficiencyFrom2DHist(std::unique_ptr<TH2> hist2d, float bin1center, float bin2center, UncScale scale ){
+    //}
+
+    float getMuSF_fromRootFile(const LorentzVectorM& Mu_p4, UncSource source, UncScale scale) const {
+        const UncScale mu_scale = source== UncSource::singleMu ? scale : UncScale::Central;
+        const auto x_axis = histo_mu_SF->GetXaxis();
+        int x_bin = x_axis->FindFixBin(Mu_p4.Eta());
+        if(x_bin < 1)
+            x_bin =1;
+        if( x_bin > x_axis->GetNbins() )
+            x_bin = x_axis->GetNbins();
+        const auto y_axis = histo_mu_SF->GetYaxis();
+
+        int y_bin = y_axis->FindFixBin(Mu_p4.Pt());
+        if(y_bin < 1)
+            y_bin =1;
+        if( y_bin > y_axis->GetNbins() )
+            y_bin = y_axis->GetNbins();
+
+        return histo_mu_SF->GetBinContent(x_bin,y_bin) + static_cast<int>(scale) * histo_mu_SF->GetBinError(x_bin,y_bin);
     }
 
     float getEleSF_fromRootFile(const LorentzVectorM& Ele_p4, UncSource source, UncScale scale) const
@@ -167,12 +193,13 @@ private:
     Correction::Ref tau_trg_;
     const std::string deepTauVersion_;
     const wpsMapType wps_map_;
-    std::unique_ptr<CorrectionSet> mu_corrections_;
+    //std::unique_ptr<CorrectionSet> mu_corrections_;
     Correction::Ref mu_trg_;
     const std::string period_;
     std::unique_ptr<TH2> histo_ele_SF;
     std::unique_ptr<TH2> histo_eTau_ele_SF;
     std::unique_ptr<TH2> histo_muTau_mu_SF;
+    std::unique_ptr<TH2> histo_mu_SF;
 
 } ;
 

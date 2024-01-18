@@ -38,11 +38,11 @@ public:
         NUM_TrackerMuons_DEN_genTracks = 26,
         NUM_TrkHighPtID_DEN_genTracks = 27,
         NUM_TrkHighPtID_DEN_TrackerMuons = 28,
+        NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight = 29,
+        NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight = 30,
+
     };
-
-
-    /*
-    static const std::map<WorkingPointsMuonID, std::string>& getWPNames()
+    static const std::map<WorkingPointsMuonID, std::string>& getYear()
     {
         static const std::map<WorkingPointsMuonID, std::string> names = {
             { WorkingPointsMuonID::HighPtID, "HighPtID"},
@@ -55,7 +55,8 @@ public:
         };
         return names;
     };
-    */
+
+
 
     static const std::string& getScaleStr(UncScale scale)
     {
@@ -70,20 +71,32 @@ public:
      static bool sourceApplies(UncSource source, const float Muon_pfRelIso04_all, const bool Muon_TightId, const float muon_Pt)
                                 // const bool Muon_mediumId, const float tkRelIso, const bool highPtID, const bool Muon_TightId )
     {
-        //if(UncSource == NUM_MediumPromptID_DEN_genTracks && Muon_mediumId) return true;
+        if(source == UncSource::NUM_MediumPromptID_DEN_genTracks && !Muon_TightId) return true;
         if(source == UncSource::NUM_TightID_DEN_genTracks && Muon_TightId) return true;
         if(source == UncSource::NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight && (Muon_TightId && Muon_pfRelIso04_all<0.15) && muon_Pt > 26) return true;
+        if(source == UncSource::NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight && (Muon_TightId && Muon_pfRelIso04_all<0.15) && muon_Pt > 29) return true;
+        if(source == UncSource::NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight && (Muon_TightId && Muon_pfRelIso04_all<0.15) && muon_Pt > 26) return true;
         if(source == UncSource::NUM_TightRelIso_DEN_TightIDandIPCut &&  Muon_pfRelIso04_all < 0.15 && Muon_TightId) return true;
         return false;
     }
 
-    MuCorrProvider(const std::string& fileName) :
+    MuCorrProvider(const std::string& fileName, const int& year) :
     corrections_(CorrectionSet::from_file(fileName))
     {
         muIDCorrections["NUM_TightID_DEN_genTracks"]= corrections_->at("NUM_TightID_DEN_genTracks");
+        muIDCorrections["NUM_MediumPromptID_DEN_genTracks"] = corrections_->at("NUM_MediumPromptID_DEN_genTracks");
         muIDCorrections["NUM_TightRelIso_DEN_TightIDandIPCut"] = corrections_->at("NUM_TightRelIso_DEN_TightIDandIPCut");
-        muIDCorrections["NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight"] = corrections_->at("NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight");
+        if (year==2018){
+            muIDCorrections["NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight"] = corrections_->at("NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight");
+        }
+        if(year==2017){
+            muIDCorrections["NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight"] = corrections_->at("NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight");
+        }
+        if (year == 2016 ){
+            muIDCorrections["NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight"] = corrections_->at("NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight");
+        }
     }
+
     float getMuonIDSF(const LorentzVectorM & muon_p4, const float Muon_pfRelIso04_all, const bool Muon_TightId, UncSource source, UncScale scale, std::string year) const {
         const UncScale muID_scale = sourceApplies(source, Muon_pfRelIso04_all, Muon_TightId, muon_p4.Pt())
                                            ? scale : UncScale::Central;

@@ -9,17 +9,28 @@ from .CorrectionsCore import *
 # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETRun2Corrections
 # https://lathomas.web.cern.ch/lathomas/METStuff/XYCorrections/XYMETCorrection_withUL17andUL18andUL16.h
 # https://indico.cern.ch/event/1033432/contributions/4339934/attachments/2235168/3788215/metxycorrections_UL2016.pdf
+
+'''BBEC1_2016postVFP
+
+IMPORTANT
+From: https://twiki.cern.ch/twiki/bin/view/CMS/PdmVRun2LegacyAnalysis
+
+Note: The RunIISummer19UL16(APV) samples have a bug in the beamspot position affecting only (most of the) 2016 samples HN, HN, talk. The RunIISummer19UL16 samples will be invalidated at the end of August. Please migrate to Summer20UL now. All Summer19UL samples are based on an older version of pythia. The difference of Summer19UL and Summer20UL due to the difference in the pythia version was studied and found negligible 1 2 3. Invalidation and deletion of all RunIISummer19 samples, for all years, is scheduled for the end of September 2021
+
+'''
+
+
 files_JEC = {
     "2018_UL":"Summer19UL18_JRV2",
     "2017_UL": "Summer19UL18_JRV2",
-    "2016preVFP_UL":"Summer20UL16_JRV4",
-    "2016postVFP_UL":"Summer20UL16_JRV4",
+    "2016preVFP_UL":"Summer20UL16_JRV3",
+    "2016postVFP_UL":"Summer20UL16_JRV3",
     }
 regrouped_files_names = {
     "2018_UL":"RegroupedV2_Summer19UL18_V5_MC_UncertaintySources_AK4PFchs.txt",
-    "2017_UL": "RegroupedV2_Summer19UL18_V5_MC_UncertaintySources_AK4PFchs.txt",
-    "2016preVFP_UL":"RegroupedV2_Summer19UL16_V9_MC_UncertaintySources_AK4PFchs.txt",
-    "2016postVFP_UL":"RegroupedV2_Summer19UL16_V9_MC_UncertaintySources_AK4PFchs.txt",
+    "2017_UL": ".txt",
+    "2016preVFP_UL":"Regrouped_Summer19UL16_V7_MC_UncertaintySources_AK4PFchs.txt",
+    "2016postVFP_UL":"Regrouped_Summer19UL16_V7_MC_UncertaintySources_AK4PFchs.txt",
     }
 
 class JetCorrProducer:
@@ -49,7 +60,7 @@ class JetCorrProducer:
         jsonFile_btag = JetCorrProducer.jsonPath_btag.format(period)
         ptResolution = os.path.join(os.environ['ANALYSIS_PATH'],JEC_PtRes_txtPath_MC.format(period))
         ptResolutionSF = os.path.join(os.environ['ANALYSIS_PATH'],JEC_SF_txtPath_MC.format(period))
-        JEC_Regrouped = os.path.join(os.environ['ANALYSIS_PATH'], JetCorrProducer.JES_Regouped_txtPath_MC.format(period))
+        JEC_Regrouped = os.path.join(os.environ['ANALYSIS_PATH'], JES_Regouped_txtPath_MC.format(period))
         if JetCorrProducer.isData:
             ptResolution = os.path.join(os.environ['ANALYSIS_PATH'],JEC_PtRes_txtPath_data.format(period))
             ptResolutionSF = os.path.join(os.environ['ANALYSIS_PATH'],JEC_SF_txtPath_data.format(period))
@@ -64,8 +75,8 @@ class JetCorrProducer:
             ROOT.gInterpreter.Declare(f'#include "{JME_calc_path}"')
             ROOT.gInterpreter.Declare(f'#include "{header_path}"')
             ROOT.gInterpreter.Declare(f'#include "{headershape_path}"')
-            ROOT.gInterpreter.ProcessLine(f"""::correction::JetCorrProvider::Initialize("{ptResolution}", "{ptResolutionSF}","{JEC_Regrouped}", "{period.split("_")[0]}")""")
-            ROOT.gInterpreter.ProcessLine(f"""::correction::bTagShapeCorrProvider::Initialize("{jsonFile_btag}", "{period.split("_")[0]}")""")
+            ROOT.gInterpreter.ProcessLine(f"""::correction::JetCorrProvider::Initialize("{ptResolution}", "{ptResolutionSF}","{JEC_Regrouped}", "{periods[period]}")""")
+            ROOT.gInterpreter.ProcessLine(f"""::correction::bTagShapeCorrProvider::Initialize("{jsonFile_btag}", "{periods[period]}")""")
             JetCorrProducer.period = period
             JetCorrProducer.initialized = True
 

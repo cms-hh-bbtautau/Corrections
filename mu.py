@@ -2,13 +2,32 @@ import os
 import ROOT
 from .CorrectionsCore import *
 
+# https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonSelection
+# https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration/-/tree/master/POG/MUO
+# https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL2018
+# https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL2017
+# https://twiki.cern.ch/twiki/bin/view/CMS/MuonUL2016
+
+
+
 class MuCorrProducer:
     muIDEff_JsonPath = "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/MUO/{}/muon_Z.json.gz"
     initialized = False
-    #muID_SF_Sources = ["NUM_TightID_DEN_genTracks","NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight","NUM_TightRelIso_DEN_TightIDandIPCut"]
-    muID_SF_Sources = ["NUM_TightID_DEN_genTracks","NUM_TightRelIso_DEN_TightIDandIPCut"]
+    muID_SF_Sources = ["NUM_TightID_DEN_genTracks","NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight","NUM_TightRelIso_DEN_TightIDandIPCut", "NUM_MediumPromptID_DEN_genTracks"]
+    year_unc_dict= {
+        "2018_UL": "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight",
+        "2017_UL": "NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight",
+        "2016preVFP_UL":"NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight",
+        "2016postVFP_UL":"NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight"
+    }
+
     muID_SF_Sources_dict = {"NUM_TightID_DEN_genTracks":"TightID", #num-den
-                       "NUM_TightRelIso_DEN_TightIDandIPCut":"TightRelIso"}
+                       "NUM_TightRelIso_DEN_TightIDandIPCut":"TightRelIso",
+                       "NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight":"TightIso24",
+                       "NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight":"TightIso27",
+                       "NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight": "TightIso24OrTightIsoTk24",
+                       "NUM_MediumPromptID_DEN_genTracks":"MediumID"
+                       }
     #muID_SF_Sources = []
     period = None
 
@@ -18,13 +37,13 @@ class MuCorrProducer:
             headers_dir = os.path.dirname(os.path.abspath(__file__))
             header_path = os.path.join(headers_dir, "mu.h")
             ROOT.gInterpreter.Declare(f'#include "{header_path}"')
-            ROOT.gInterpreter.ProcessLine(f'::correction::MuCorrProvider::Initialize("{jsonFile_eff}")')
+            ROOT.gInterpreter.ProcessLine(f'::correction::MuCorrProvider::Initialize("{jsonFile_eff}", static_cast<int>({periods[period]}))')
             MuCorrProducer.period = period
             MuCorrProducer.initialized = True
 
     def getMuonIDSF(self, df, nLegs, isCentral):
         muID_SF_branches = []
-        for source in [ central ] + MuCorrProducer.muID_SF_Sources:
+        for source in [ central ] + MuCorrProducer.muID_SF_Sources + [MuCorrProducer.year_unc_dict[self.period]]:
             for scale in getScales(source):
                 if not isCentral and scale!= central: continue
                 syst_name = getSystName(source, scale)

@@ -102,10 +102,11 @@ def applyScaleUncertainties(df):
         for scale in getScales(source):
             syst_name = getSystName(source, scale)
             syst_dict[syst_name] = source
-            for obj in [ "Electron", "Muon", "Tau", "Jet", "FatJet", "boostedTau", "MET", "PuppiMET",
+            for obj in [ "Electron", "Muon", "Tau", "Jet", "FatJet",  "MET", "PuppiMET", "boostedTau",
                          "DeepMETResponseTune", "DeepMETResolutionTune", "SubJet"]:
                 if obj not in source_objs:
                     suffix = 'Central' if f"{obj}_p4_Central" in df.GetColumnNames() else 'nano'
+                    if obj=='boostedTau' and '{obj}_p4_{suffix}' not in df.GetColumnNames(): continue
                     df = df.Define(f'{obj}_p4_{syst_name}', f'{obj}_p4_{suffix}')
     return df,syst_dict
 
