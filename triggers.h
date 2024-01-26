@@ -150,7 +150,6 @@ public:
 
         return histo_ele_SF->GetBinContent(x_bin,y_bin) + static_cast<int>(ele_scale) * histo_ele_SF->GetBinError(x_bin,y_bin);
     }
-
     float getXTrgSF_fromRootFile(const LorentzVectorM& leg_p4, UncSource source, UncScale scale, bool isMuTau) const
     {
         UncScale xTrg_scale = UncScale::Central;
