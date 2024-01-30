@@ -1,6 +1,9 @@
 import os
 import ROOT
 from .CorrectionsCore import *
+# https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJetIDUL
+# https://indico.cern.ch/event/1118864/contributions/4734428/attachments/2388825/4120443/Tanmay_Slide_February_22_2022_Modified.pdf
+# https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJetIDUL#Data_MC_Efficiency_Scale_Factors
 
 class puJetIDCorrProducer:
     PUJetID_JsonPath = "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/JME/{}/jmar.json.gz"

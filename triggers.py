@@ -3,7 +3,20 @@ import ROOT
 from .CorrectionsCore import *
 from Common.Utilities import *
 import yaml
+# Tau JSON POG integration for tau legs in eTau, muTau, diTau:
+# # https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration/-/tree/master/POG/TAU?ref_type=heads
+
+# singleEle + e/mu legs for xTriggers eTau, muTau:
 # https://twiki.cern.ch/twiki/bin/view/CMS/EgHLTScaleFactorMeasurements
+
+# singleMu : files taken from https://gitlab.cern.ch/cms-muonPOG/muonefficiencies/-/tree/master/Run2/UL and saved locally
+
+# singleTau: https://twiki.cern.ch/twiki/bin/viewauth/CMS/TauTrigger#Run_II_Trigger_Scale_Factors
+# singleTau: Legacy bc there are no UL as mentioned herehttps://cms-pub-talk.web.cern.ch/t/tau-pog-review/8404/4
+# singleTau: 2016 - (HLT_VLooseIsoPFTau120_Trk50_eta2p1_v OR HLT_VLooseIsoPFTau140_Trk50_eta2p1_v) - 0.88 +/- 0.08
+# singleTau: 2017 - HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1_v - 1.08 +/- 0.10
+# singleTau: 2018 - (HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1_v) - 	0.87 +/- 0.11
+
 year_singleElefile = {
     "2018_UL":"sf_el_2018_HLTEle32.root",
     "2017_UL":"sf_el_2017_HLTEle32.root",
@@ -55,11 +68,7 @@ class TrigCorrProducer:
         "2016preVFP_UL" :  {'Central':0.88, 'Up':0.8, 'Down':0.96,},
         "2016postVFP_UL" :   {'Central':0.88, 'Up':0.8, 'Down':0.96,},
     }
-    '''
-    // 2016 - (HLT_VLooseIsoPFTau120_Trk50_eta2p1_v OR HLT_VLooseIsoPFTau140_Trk50_eta2p1_v) - 0.88 +/- 0.08
-    // 2017 - HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1_v - 1.08 +/- 0.10
-    // 2018 - (HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1_v) - 	0.87 +/- 0.11
-    '''
+
     def __init__(self, period, config):
         jsonFile_Tau = TrigCorrProducer.TauTRG_jsonPath.format(period)
         #print(jsonFile_Tau)
