@@ -12,16 +12,18 @@ public:
         ditau_DM0 = 0,
         ditau_DM1 = 1,
         ditau_3Prong = 2,
-        singleMu = 3,
-        singleEle = 4,
-        etau_ele = 5,
-        etau_DM0 = 6,
-        etau_DM1 = 7,
-        etau_3Prong = 8,
-        mutau_mu = 9,
-        mutau_DM0 = 10,
-        mutau_DM1 = 11,
-        mutau_3Prong = 12,
+        singleMu24 = 3,
+        singleMu50or24 = 4,
+        singleMu50 = 5,
+        singleEle = 6,
+        etau_ele = 7,
+        etau_DM0 = 8,
+        etau_DM1 = 9,
+        etau_3Prong = 10,
+        mutau_mu = 11,
+        mutau_DM0 = 12,
+        mutau_DM1 = 13,
+        mutau_3Prong = 14,
     };
     using wpsMapType = std::map<Channel, std::vector<std::pair<std::string, int> > >;
     static bool isTwoProngDM(int dm)
@@ -66,9 +68,9 @@ public:
         }
         return false;
     }
-
+    /*const std::vector<std::string>& mu_trigger,*/
     TrigCorrProvider(const std::string& tauFileName, const std::string& deepTauVersion, const wpsMapType& wps_map,
-                    const std::string& muFileName, const std::string& period, const std::string& mu_trigger, const std::string& hist_mu_name, const std::string& eleFileName, const std::string& eTauFileName, const std::string& muTauFileName) :
+                    const std::string& muFileName, const std::string& period, const std::vector<std::string>& hist_mu_name, const std::string& eleFileName, const std::string& eTauFileName, const std::string& muTauFileName) :
         tau_corrections_(CorrectionSet::from_file(tauFileName)),
         tau_trg_(tau_corrections_->at("tau_trigger")),
         deepTauVersion_(deepTauVersion),
@@ -88,7 +90,9 @@ public:
         histo_ele_SF.reset(root_ext::ReadCloneObject<TH2>(*eleFile, "SF2D", "SF2D", true));
 
         auto muFile = root_ext::OpenRootFile(muFileName);
-        histo_mu_SF.reset(root_ext::ReadCloneObject<TH2>(*muFile, hist_mu_name.c_str(), hist_mu_name.c_str(), true));
+        histo_mu_SF_24.reset(root_ext::ReadCloneObject<TH2>(*muFile, hist_mu_name[0].c_str(), hist_mu_name[0].c_str(), true));
+        histo_mu_SF_50or24.reset(root_ext::ReadCloneObject<TH2>(*muFile, hist_mu_name[1].c_str(), hist_mu_name[1].c_str(), true));
+        histo_mu_SF_50.reset(root_ext::ReadCloneObject<TH2>(*muFile, hist_mu_name[2].c_str(), hist_mu_name[2].c_str(), true));
 
     }
 
@@ -112,23 +116,58 @@ public:
     //float getEfficiencyFrom2DHist(std::unique_ptr<TH2> hist2d, float bin1center, float bin2center, UncScale scale ){
     //}
 
-    float getMuSF_fromRootFile(const LorentzVectorM& Mu_p4, UncSource source, UncScale scale) const {
-        const UncScale mu_scale = source== UncSource::singleMu ? scale : UncScale::Central;
-        const auto x_axis = histo_mu_SF->GetXaxis();
-        int x_bin = x_axis->FindFixBin(Mu_p4.Eta());
+    float getSFsFromHisto(const std::unique_ptr<TH2>& histo, const LorentzVectorM& part_p4, UncScale scale, bool wantAbsEta) const
+    {
+        const auto x_axis = histo->GetXaxis();
+        const auto eta = wantAbsEta ? std::abs(part_p4.Eta()) : part_p4.Eta();
+        int x_bin = x_axis->FindFixBin(eta);
         if(x_bin < 1)
             x_bin =1;
         if( x_bin > x_axis->GetNbins() )
             x_bin = x_axis->GetNbins();
-        const auto y_axis = histo_mu_SF->GetYaxis();
+        const auto y_axis = histo->GetYaxis();
 
-        int y_bin = y_axis->FindFixBin(Mu_p4.Pt());
+        int y_bin = y_axis->FindFixBin(part_p4.Pt());
         if(y_bin < 1)
             y_bin =1;
         if( y_bin > y_axis->GetNbins() )
             y_bin = y_axis->GetNbins();
 
-        return histo_mu_SF->GetBinContent(x_bin,y_bin) + static_cast<int>(scale) * histo_mu_SF->GetBinError(x_bin,y_bin);
+        return histo->GetBinContent(x_bin,y_bin) + static_cast<int>(scale) * histo->GetBinError(x_bin,y_bin);
+    }
+
+    float getSF_fromRootFile(const LorentzVectorM& part_p4, UncSource source, UncScale scale, bool isMuTau=false) const {
+        bool wantAbsEta = isMuTau ? true : false;
+        float sf = 1.;
+        if (source== UncSource::singleMu24){
+            const UncScale mu_scale = source== UncSource::singleMu24 ? scale : UncScale::Central;
+            sf= getSFsFromHisto(histo_mu_SF_24, part_p4, mu_scale, wantAbsEta);
+        }
+        if (source== UncSource::singleMu50or24){
+            const UncScale mu_scale = source== UncSource::singleMu50or24 ? scale : UncScale::Central;
+            sf= getSFsFromHisto(histo_mu_SF_50or24, part_p4, mu_scale, wantAbsEta);
+        }
+
+        if (source== UncSource::singleMu50){
+            const UncScale mu_scale = source== UncSource::singleMu50 ? scale : UncScale::Central;
+            sf= getSFsFromHisto(histo_mu_SF_50, part_p4, mu_scale, wantAbsEta);
+        }
+        if (source== UncSource::singleEle){
+            const UncScale ele_scale = source== UncSource::singleEle ? scale : UncScale::Central;
+            sf= getSFsFromHisto(histo_ele_SF, part_p4, ele_scale, wantAbsEta);
+        }
+        if (source== UncSource::mutau_mu || source == UncSource::etau_ele){
+            UncScale xTrg_scale = UncScale::Central;
+            if(source == UncSource::mutau_mu && isMuTau) {
+                xTrg_scale = scale;
+                sf= getSFsFromHisto(histo_muTau_mu_SF, part_p4, xTrg_scale, wantAbsEta);
+            }
+            if(source == UncSource::etau_ele && !(isMuTau) ) {
+                xTrg_scale = scale;
+                sf= getSFsFromHisto(histo_eTau_ele_SF, part_p4, xTrg_scale, wantAbsEta);
+            }
+        }
+        return sf;
     }
 
     float getEleSF_fromRootFile(const LorentzVectorM& Ele_p4, UncSource source, UncScale scale) const
@@ -150,6 +189,7 @@ public:
 
         return histo_ele_SF->GetBinContent(x_bin,y_bin) + static_cast<int>(ele_scale) * histo_ele_SF->GetBinError(x_bin,y_bin);
     }
+
     float getXTrgSF_fromRootFile(const LorentzVectorM& leg_p4, UncSource source, UncScale scale, bool isMuTau) const
     {
         UncScale xTrg_scale = UncScale::Central;
@@ -198,7 +238,9 @@ private:
     std::unique_ptr<TH2> histo_ele_SF;
     std::unique_ptr<TH2> histo_eTau_ele_SF;
     std::unique_ptr<TH2> histo_muTau_mu_SF;
-    std::unique_ptr<TH2> histo_mu_SF;
+    std::unique_ptr<TH2> histo_mu_SF_24;
+    std::unique_ptr<TH2> histo_mu_SF_50or24;
+    std::unique_ptr<TH2> histo_mu_SF_50;
 
 } ;
 
