@@ -51,18 +51,35 @@ class TauCorrProducer:
 
     def getSF(self, df, nLegs, isCentral, return_variations):
         sf_sources =TauCorrProducer.SFSources_tau+TauCorrProducer.SFSources_genuineLep if return_variations else []
-        SF_branches = {}
+        SF_branches = []
         for source in [ central ] + sf_sources:
-            for scale in getScales(source):
-                syst_name = getSystName(source, scale)
+            #for scale in getScales(source):
+            for scale in [central, up, down]:
+                if source == central and scale != central: continue
                 if not isCentral and scale!= central: continue
-                SF_branches[syst_name]= []
+                syst_name = source+scale# if source != central else 'Central'
+                #SF_branches[syst_name]= []
                 for leg_idx in range(nLegs):
-                    df = df.Define(f"weight_tau{leg_idx+1}_TauID_SF_{syst_name}",
+                    branch_name = f"weight_tau{leg_idx+1}_TauID_SF_{syst_name}"
+                    #print(branch_name)
+                    branch_central = f"""weight_tau{leg_idx+1}_TauID_SF_{source+central}"""
+                    #print(branch_central)
+                    df = df.Define(f"{branch_name}_double",
                                 f'''HttCandidate.leg_type[{leg_idx}] == Leg::tau ? ::correction::TauCorrProvider::getGlobal().getSF(
                                HttCandidate.leg_p4[{leg_idx}], Tau_decayMode.at(HttCandidate.leg_index[{leg_idx}]),
                                Tau_genMatch.at(HttCandidate.leg_index[{leg_idx}]), HttCandidate.channel(),
                                ::correction::TauCorrProvider::UncSource::{source}, ::correction::UncScale::{scale}) : 1.;''')
-                    SF_branches[syst_name].append(f"weight_tau{leg_idx+1}_TauID_SF_{syst_name}")
+                    if scale != central:
+                        branch_name_final = branch_name + '_rel'
+                        df = df.Define(branch_name_final, f"static_cast<float>({branch_name}_double/{branch_central})")
+                    else:
+                        if source == central:
+                            branch_name_final = f"""weight_tau{leg_idx+1}_TauID_SF_{central}"""
+                        else:
+                            branch_name_final = branch_name
+                        df = df.Define(branch_name_final, f"static_cast<float>({branch_name}_double)")
+                    SF_branches.append(branch_name_final)
+                    #SF_branches[syst_name].append(f"weight_tau{leg_idx+1}_TauID_SF_{syst_name}")
+
         return df,SF_branches
 

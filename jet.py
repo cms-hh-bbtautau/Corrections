@@ -1,15 +1,23 @@
 import os
 import ROOT
 from .CorrectionsCore import *
-# https://github.com/cms-jet/JECDatabase/tree/master
-# https://github.com/cms-jet/JRDatabase
 # https://docs.google.com/spreadsheets/d/1JZfk78_9SD225bcUuTWVo4i02vwI5FfeVKH-dwzUdhM/edit#gid=1345121349
-# https://twiki.cern.ch/twiki/bin/view/CMS/JECUncertaintySources
-# https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution#Smearing_procedures
+
+# MET corrections
 # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETRun2Corrections
 # https://lathomas.web.cern.ch/lathomas/METStuff/XYCorrections/XYMETCorrection_withUL17andUL18andUL16.h
 # https://indico.cern.ch/event/1033432/contributions/4339934/attachments/2235168/3788215/metxycorrections_UL2016.pdf
+# JEC uncertainty sources took from recommendation here:
+# https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC
+# https://github.com/cms-jet/JECDatabase/tree/master
+# https://twiki.cern.ch/twiki/bin/view/CMS/JECUncertaintySources
+# JER uncertainty source took from:
+# https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution
+# https://github.com/cms-jet/JRDatabase
+# smearing procedure
+# https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution#Smearing_procedures
 
+# according to recommendation, SummerUL19 should be used but also SummerUL20 are available for JER.
 '''BBEC1_2016postVFP
 
 IMPORTANT
@@ -20,17 +28,24 @@ Note: The RunIISummer19UL16(APV) samples have a bug in the beamspot position aff
 '''
 
 
-files_JEC = {
+directories_JER = {
     "2018_UL":"Summer19UL18_JRV2",
-    "2017_UL": "Summer19UL18_JRV2",
-    "2016preVFP_UL":"Summer20UL16_JRV3",
+    "2017_UL": "Summer19UL17_JRV2",
+    "2016preVFP_UL":"Summer20UL16APV_JRV3",
     "2016postVFP_UL":"Summer20UL16_JRV3",
     }
+directories_JEC = {
+    "2018_UL":"Summer19UL18_V5_MC",
+    "2017_UL": "Summer19UL17_V5_MC",
+    "2016preVFP_UL":"Summer19UL16APV_V7_MC",
+    "2016postVFP_UL":"Summer19UL16_V7_MC",
+    }
+
 regrouped_files_names = {
     "2018_UL":"RegroupedV2_Summer19UL18_V5_MC_UncertaintySources_AK4PFchs.txt",
-    "2017_UL": ".txt",
-    "2016preVFP_UL":"Regrouped_Summer19UL16_V7_MC_UncertaintySources_AK4PFchs.txt",
-    "2016postVFP_UL":"Regrouped_Summer19UL16_V7_MC_UncertaintySources_AK4PFchs.txt",
+    "2017_UL": "RegroupedV2_Summer19UL17_V5_MC_UncertaintySources_AK4PFchs.txt",
+    "2016preVFP_UL":"RegroupedV2_Summer19UL16APV_V7_MC_UncertaintySources_AK4PFchs.txt",
+    "2016postVFP_UL":"RegroupedV2_Summer19UL16_V7_MC_UncertaintySources_AK4PFchs.txt"
     }
 
 class JetCorrProducer:
@@ -46,16 +61,21 @@ class JetCorrProducer:
     period = None
     def __init__(self, period,isData):
         JEC_SF_path_period = JetCorrProducer.JEC_SF_path.format(period)
-        prefix_period = files_JEC[period]
-        JEC_SF_txtPath_MC = f"{JEC_SF_path_period}/{prefix_period}_MC/{prefix_period}_MC_SF_AK4PFchs.txt"
-        JEC_PtRes_txtPath_MC = f"{JEC_SF_path_period}/{prefix_period}_MC/{prefix_period}_MC_PtResolution_AK4PFchs.txt"
-        JEC_PhiRes_txtPath_MC = f"{JEC_SF_path_period}/{prefix_period}_MC/{prefix_period}_MC_PhiResolution_AK4PFchs.txt"
-        JEC_EtaRes_txtPath_MC = f"{JEC_SF_path_period}/{prefix_period}_MC/{prefix_period}_MC_EtaResolution_AK4PFchs.txt"
-        JES_Regouped_txtPath_MC = f"{JEC_SF_path_period}/{prefix_period}_MC/{regrouped_files_names[period]}"
-        JEC_SF_txtPath_data = f"{JEC_SF_path_period}/{prefix_period}_DATA/{prefix_period}_DATA_SF_AK4PFchs.txt"
-        JEC_PtRes_txtPath_data = f"{JEC_SF_path_period}/{prefix_period}_DATA/{prefix_period}_DATA_PtResolution_AK4PFchs.txt"
-        JEC_PhiRes_txtPath_data = f"{JEC_SF_path_period}/{prefix_period}_DATA/{prefix_period}_DATA_PhiResolution_AK4PFchs.txt"
-        JEC_EtaRes_txtPath_data = f"{JEC_SF_path_period}/{prefix_period}_DATA/{prefix_period}_DATA_EtaResolution_AK4PFchs.txt"
+        JEC_dir = directories_JEC[period]
+        JER_dir = directories_JER[period]
+
+        JEC_SF_txtPath_MC = f"{JEC_SF_path_period}/{JER_dir}_MC/{JER_dir}_MC_SF_AK4PFchs.txt"
+        JEC_PtRes_txtPath_MC = f"{JEC_SF_path_period}/{JER_dir}_MC/{JER_dir}_MC_PtResolution_AK4PFchs.txt"
+        JEC_PhiRes_txtPath_MC = f"{JEC_SF_path_period}/{JER_dir}_MC/{JER_dir}_MC_PhiResolution_AK4PFchs.txt"
+        JEC_EtaRes_txtPath_MC = f"{JEC_SF_path_period}/{JER_dir}_MC/{JER_dir}_MC_EtaResolution_AK4PFchs.txt"
+
+        JES_Regouped_txtPath_MC = f"{JEC_SF_path_period}/{JEC_dir}/{regrouped_files_names[period]}"
+
+        JEC_SF_txtPath_data = f"{JEC_SF_path_period}/{JER_dir}_DATA/{JER_dir}_DATA_SF_AK4PFchs.txt"
+        JEC_PtRes_txtPath_data = f"{JEC_SF_path_period}/{JER_dir}_DATA/{JER_dir}_DATA_PtResolution_AK4PFchs.txt"
+        JEC_PhiRes_txtPath_data = f"{JEC_SF_path_period}/{JER_dir}_DATA/{JER_dir}_DATA_PhiResolution_AK4PFchs.txt"
+        JEC_EtaRes_txtPath_data = f"{JEC_SF_path_period}/{JER_dir}_DATA/{JER_dir}_DATA_EtaResolution_AK4PFchs.txt"
+
         JetCorrProducer.isData = isData
         jsonFile_btag = JetCorrProducer.jsonPath_btag.format(period)
         ptResolution = os.path.join(os.environ['ANALYSIS_PATH'],JEC_PtRes_txtPath_MC.format(period))
@@ -71,7 +91,9 @@ class JetCorrProducer:
             headers_dir = os.path.dirname(os.path.abspath(__file__))
             header_path = os.path.join(headers_dir, "jet.h")
             headershape_path = os.path.join(headers_dir, "btagShape.h")
+            JME_calc_base = os.path.join(headers_dir, "JMECalculatorBase.cc")
             JME_calc_path = os.path.join(headers_dir, "JMESystematicsCalculators.cc")
+            ROOT.gInterpreter.Declare(f'#include "{JME_calc_base}"')
             ROOT.gInterpreter.Declare(f'#include "{JME_calc_path}"')
             ROOT.gInterpreter.Declare(f'#include "{header_path}"')
             ROOT.gInterpreter.Declare(f'#include "{headershape_path}"')

@@ -57,16 +57,24 @@ class TrigCorrProducer:
 
     muon_trg_dict = {
         "2018_UL": ROOT.std.vector('std::string')({"NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight","NUM_IsoMu24_or_Mu50_DEN_CutBasedIdTight_and_PFIsoTight", "NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose"}),
-        #"2017_UL": "NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight",
-        #"2016preVFP_UL":"NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight",
-        #"2016postVFP_UL":"NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight"
+
+        "2017_UL": ROOT.std.vector('std::string')({"NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight","NUM_IsoMu27_or_Mu50_DEN_CutBasedIdTight_and_PFIsoTight", "NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose"}),
+
+        "2016preVFP_UL":ROOT.std.vector('std::string')({"NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight","NUM_IsoMu24_or_IsoTkMu24_or_Mu50_or_TkMu50_DEN_CutBasedIdTight_and_PFIsoTight", "NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose"}),
+
+        "2016postVFP_UL":ROOT.std.vector('std::string')({"NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight","NUM_IsoMu24_or_IsoTkMu24_or_Mu50_or_TkMu50_DEN_CutBasedIdTight_and_PFIsoTight", "NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose"})
+
     }
 
     muon_trgHistNames_dict = {
         "2018_UL": ["NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight_eta_pt_syst","NUM_IsoMu24_or_Mu50_DEN_CutBasedIdTight_and_PFIsoTight_eta_pt_syst", "NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_eta_pt_syst"],
-        #"2017_UL": "NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight",
-        #"2016preVFP_UL":"NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight",
-        #"2016postVFP_UL":"NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight"
+
+        "2017_UL": ["NUM_IsoMu27_DEN_CutBasedIdTight_and_PFIsoTight_eta_pt_syst","NUM_IsoMu27_or_Mu50_DEN_CutBasedIdTight_and_PFIsoTight_eta_pt_syst", "NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_eta_pt_syst"],
+
+        "2016preVFP_UL":["NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight_eta_pt_syst","NUM_IsoMu24_or_IsoTkMu24_or_Mu50_or_TkMu50_DEN_CutBasedIdTight_and_PFIsoTight_eta_pt_syst", "NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_eta_pt_syst"],
+
+        "2016postVFP_UL":["NUM_IsoMu24_or_IsoTkMu24_DEN_CutBasedIdTight_and_PFIsoTight_eta_pt_syst","NUM_IsoMu24_or_IsoTkMu24_or_Mu50_or_TkMu50_DEN_CutBasedIdTight_and_PFIsoTight_eta_pt_syst", "NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_eta_pt_syst"],
+
     }
 
     singleTau_SF_dict = {
@@ -90,6 +98,7 @@ class TrigCorrProducer:
         #print(jsonFile_mu_XTrg)
         jsonFile_e_XTrg = os.path.join(os.environ['ANALYSIS_PATH'],TrigCorrProducer.e_XTrg_jsonPath.format(period,year_xTrg_eTaufile[period]))
         self.period = period
+        #self.trg_config = trg_config
         #print(jsonFile_e_XTrg)
         if self.deepTauVersion=='DeepTau2018v2p5':
             jsonFile_Tau_rel = f"Corrections/data/TAU/{period}/tau_DeepTau2018v2p5_{period}.json"
@@ -226,18 +235,25 @@ class TrigCorrProducer:
                             suffix = f"{trg_name}_{syst_name}"
                         branch_name = f"weight_tau{leg_idx+1}_TrgSF_{suffix}"
                         branch_central = f"weight_tau{leg_idx+1}_TrgSF_{trg_name}_{getSystName(central,central)}"
-                        df = df.Define(f"{branch_name}_double",
+                        if leg_idx == 0:
+                            df = df.Define(f"{branch_name}_double",
+                                    f'''
+                                    if({applyTrgBranch_name} && HttCandidate.leg_type[{leg_idx}] == Leg::mu)
+                                    {{
+                                        return ::correction::TrigCorrProvider::getGlobal().getSF_fromRootFile(HttCandidate.leg_p4[{leg_idx}], ::correction::TrigCorrProvider::UncSource::{source},::correction::UncScale::{scale}, true);
+                                    }}
+                                    return 1.f;''')
+                        elif leg_idx ==1:
+                            df = df.Define(f"{branch_name}_double",
                                 f'''
-                                if({applyTrgBranch_name} && HttCandidate.leg_type[{leg_idx}] == Leg::mu)
-                                {{
-                                    return ::correction::TrigCorrProvider::getGlobal().getSF_fromRootFile(HttCandidate.leg_p4[{leg_idx}], ::correction::TrigCorrProvider::UncSource::{source},::correction::UncScale::{scale}, true);
-                                }}
-                                else if({applyTrgBranch_name} && HttCandidate.leg_type[{leg_idx}] == Leg::tau)
+                                if({applyTrgBranch_name} && HttCandidate.leg_type[{leg_idx}] == Leg::tau)
                                 {{
                                     return ::correction::TrigCorrProvider::getGlobal().getTauSF_fromCorrLib(
                                     HttCandidate.leg_p4[{leg_idx}], Tau_decayMode.at(HttCandidate.leg_index[{leg_idx}]), "{trg_name}", HttCandidate.channel(), ::correction::TrigCorrProvider::UncSource::{source}, ::correction::UncScale::{scale} );
                                 }}
                                 return 1.f;''')
+                        else:
+                            print("not known leg")
                         if scale != central:
                             df = df.Define(f"{branch_name}_rel", f"static_cast<float>({branch_name}_double/{branch_central})")
                             branch_name += '_rel'
@@ -260,13 +276,25 @@ class TrigCorrProducer:
                             suffix = f"{trg_name}_{syst_name}"
                         branch_name = f"weight_tau{leg_idx+1}_TrgSF_{suffix}"
                         branch_central = f"weight_tau{leg_idx+1}_TrgSF_{trg_name}_{getSystName(central,central)}"
-                        df = df.Define(f"{branch_name}_double",
+                        if leg_idx == 0:
+                            df = df.Define(f"{branch_name}_double",
+                                    f'''
+                                    if({applyTrgBranch_name} && HttCandidate.leg_type[{leg_idx}] == Leg::e)
+                                    {{
+                                        return ::correction::TrigCorrProvider::getGlobal().getSF_fromRootFile(HttCandidate.leg_p4[{leg_idx}], ::correction::TrigCorrProvider::UncSource::{source},::correction::UncScale::{scale}, true);
+                                    }}
+                                    return 1.f;''')
+                        elif leg_idx ==1:
+                            df = df.Define(f"{branch_name}_double",
                                 f'''
                                 if({applyTrgBranch_name} && HttCandidate.leg_type[{leg_idx}] == Leg::tau)
                                 {{
-                                    return ::correction::TrigCorrProvider::getGlobal().getSF_fromRootFile(HttCandidate.leg_p4[{leg_idx}], ::correction::TrigCorrProvider::UncSource::{source},::correction::UncScale::{scale}, false);
+                                    return ::correction::TrigCorrProvider::getGlobal().getTauSF_fromCorrLib(
+                                    HttCandidate.leg_p4[{leg_idx}], Tau_decayMode.at(HttCandidate.leg_index[{leg_idx}]), "{trg_name}", HttCandidate.channel(), ::correction::TrigCorrProvider::UncSource::{source}, ::correction::UncScale::{scale} );
                                 }}
                                 return 1.f;''')
+                        else:
+                            print("not known leg")
                         if scale != central:
                             df = df.Define(f"{branch_name}_rel", f"static_cast<float>({branch_name}_double/{branch_central})")
                             branch_name += '_rel'
