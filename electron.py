@@ -36,9 +36,9 @@ class EleCorrProducer:
     def getIDSF(self, df, nLegs, isCentral, return_variations):
         sf_sources =EleCorrProducer.ID_sources
         SF_branches = []
-        sf_scales = [central, up, down] if return_variations else [central]
+        sf_scales = [up, down] if return_variations else []
         for source in sf_sources:
-            for scale in sf_scales:
+            for scale in [central]+sf_scales:
                 if not isCentral and scale!= central: continue
                 #syst_name = getSystName(source, scale)
                 for leg_idx in range(nLegs):

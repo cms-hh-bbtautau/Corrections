@@ -115,9 +115,9 @@ class MuCorrProducer:
     def getHighPtMuonIDSF(self, df, nLegs, isCentral, return_variations):
         highPtMuSF_branches = []
         sf_sources =  MuCorrProducer.highPtmuReco_SF_sources + MuCorrProducer.highPtmuID_SF_Sources + MuCorrProducer.highPtmuIso_SF_Sources
-        sf_scales = [central, up, down] if return_variations else [central]
+        sf_scales = [up, down] if return_variations else []
         for source in sf_sources :
-            for scale in sf_scales:
+            for scale in [ central ] + sf_scales:
                 if source == central and scale != central: continue
                 if not isCentral and scale!= central: continue
                 source_name = MuCorrProducer.highPtMu_SF_Sources_dict[source] if source != central else central

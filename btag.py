@@ -47,10 +47,11 @@ class bTagCorrProducer:
         return df
 
     def getSF(self, df, return_variations=True, isCentral=True):
-        sf_sources = bTagCorrProducer.SFSources if return_variations else []
+        sf_sources = bTagCorrProducer.SFSources
         SF_branches = []
+        sf_scales = [up, down] if return_variations else []
         for source in [ central ] + sf_sources:
-            for scale in [central, up, down]:
+            for scale in [ central ] + sf_scales:
                 if source == central and scale != central: continue
                 if not isCentral and scale!= central: continue
                 #syst_name = source+scale if source != central else 'Central'

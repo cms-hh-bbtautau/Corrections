@@ -198,9 +198,14 @@ def getNormalisationCorrections(df, config, sample, nLegs, ana_cache=None, retur
         #print(f"weight_name is {weight_name}")
         #print(f"weight_rel_name is {weight_rel_name}")
         #print(f"weight_out_name is {weight_out_name}")
-        if syst_name!=central:
+
+        if syst_name==central:
+            all_weights.append(weight_out_name)
+        else:
             df = df.Define(weight_out_name, f'static_cast<float>(weight_{syst_name}/weight_MC_Lumi_pu)')
-        all_weights.append(weight_out_name)
+            for scale in ['Up','Down']:
+                if syst_name == f'pu{scale}' and return_variations:
+                    all_weights.append(weight_out_name)
     '''
     if 'tauID' in sf_to_apply:
         df, tau_SF_branches = tau.getSF(df, nLegs, isCentral, return_variations)
@@ -242,7 +247,7 @@ def getNormalisationCorrections(df, config, sample, nLegs, ana_cache=None, retur
         df, eleID_SF_branches = ele.getIDSF(df, nLegs, isCentral, return_variations)
         all_weights.extend(eleID_SF_branches)
     if puJetID!=None and nLegs == 2:
-        df, puJetID_SF_branches = puJetID.getPUJetIDEff(df,isCentral)
+        df, puJetID_SF_branches = puJetID.getPUJetIDEff(df,isCentral,return_variations)
         all_weights.extend(puJetID_SF_branches)
     if btag != None:
          df, bTag_SF_branches = btag.getSF(df,isCentral and return_variations, isCentral)

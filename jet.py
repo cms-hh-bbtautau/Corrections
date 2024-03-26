@@ -139,29 +139,31 @@ class JetCorrProducer:
                 df = df.Define(f'Jet_p4_{syst_name}_delta', f'Jet_p4_{syst_name} - Jet_p4_{nano}')
         return df,source_dict
 
-    def getBtagShapeSFs(self, df, jes_syst_name, isCentral):
+    def getBtagShapeSFs(self, df, jes_syst_name, isCentral, return_variations):
         SF_branches_core = []
         SF_branches_jes = []
+        sf_scales = [up, down] if return_variations else []
         bTagShapeSource_jesCentral_syst_name = getSystName(central, central)
         df, SF_branches_core= JetCorrProducer.addtbTagShapeSFInDf(df, central,SF_branches_core, central, central, bTagShapeSource_jesCentral_syst_name, False)
-        if isCentral:
+        if isCentral and return_variations:
             for bTagShapeSource_jesCentral in ["lf", "hf", "lfstats1", "lfstats2", "hfstats1", "hfstats2", "cferr1", "cferr2"]:
                 for scale in getScales(bTagShapeSource_jesCentral):
                     bTagShapeSource_jesCentral_syst_name = getSystName(bTagShapeSource_jesCentral, scale)
                     df, SF_branches_core= JetCorrProducer.addtbTagShapeSFInDf(df, bTagShapeSource_jesCentral,SF_branches_core, central, scale, bTagShapeSource_jesCentral_syst_name, True)
         else:
-            for jes_source in JetCorrProducer.uncSources_core:
-                jes_source_eff= "JES_" + jes_source
-                bTagShapeSource = 'jes'+jes_source if jes_source != central else central
-                if jes_source.endswith("_") :
-                    jes_source_eff = jes_source_eff+ JetCorrProducer.period.split("_")[0]
-                    jes_source+="year"
-                    bTagShapeSource+="year"
-                for scale in getScales(jes_source):
-                    if jes_syst_name != getSystName(jes_source_eff, scale): continue
-                    df, SF_branches_jes= JetCorrProducer.addtbTagShapeSFInDf(df, bTagShapeSource, SF_branches_jes,jes_source, scale,jes_syst_name, False)
-                if len(SF_branches_jes)>1:
-                    print(f"len di SF_branches_jes = {len(SF_branches_jes)}")
+            if return_variations:
+                for jes_source in JetCorrProducer.uncSources_core:
+                    jes_source_eff= "JES_" + jes_source
+                    bTagShapeSource = 'jes'+jes_source if jes_source != central else central
+                    if jes_source.endswith("_") :
+                        jes_source_eff = jes_source_eff+ JetCorrProducer.period.split("_")[0]
+                        jes_source+="year"
+                        bTagShapeSource+="year"
+                    for scale in getScales(jes_source):
+                        if jes_syst_name != getSystName(jes_source_eff, scale): continue
+                        df, SF_branches_jes= JetCorrProducer.addtbTagShapeSFInDf(df, bTagShapeSource, SF_branches_jes,jes_source, scale,jes_syst_name, False)
+                    if len(SF_branches_jes)>1:
+                        print(f"len di SF_branches_jes = {len(SF_branches_jes)}")
         final_sf_jes = SF_branches_jes[0] if len(SF_branches_jes)==1 else ""
         return df,SF_branches_core, final_sf_jes
 

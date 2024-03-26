@@ -15,9 +15,10 @@ class TauCorrProducer:
 
     energyScaleSources_tau = ["TauES_DM0", "TauES_DM1", "TauES_3prong"]
     energyScaleSources_lep = ["EleFakingTauES_DM0", "EleFakingTauES_DM1", "MuFakingTauES"]
-    SFSources_tau = ["stat1_dm0", "stat2_dm0", "stat1_dm1", "stat2_dm1", "stat1_dm10", "stat2_dm10", "stat1_dm11", "stat2_dm11", "syst_alleras", "syst_year", "syst_year_dm0", "syst_year_dm1", "syst_year_dm10", "syst_year_dm11", "total"]
-    SFSources_genuineLep=["TauID_genuineElectron_barrel", "TauID_genuineElectron_endcaps", "TauID_genuineMuon_etaLt0p4",
-        "TauID_genuineMuon_eta0p4to0p8", "TauID_genuineMuon_eta0p8to1p2", "TauID_genuineMuon_eta1p2to1p7", "TauID_genuineMuon_etaGt1p7" ]
+    SFSources_tau = ["stat1_dm0", "stat2_dm0", "stat1_dm1", "stat2_dm1", "stat1_dm10", "stat2_dm10", "stat1_dm11", "stat2_dm11", "syst_alleras", "syst_year", "syst_year_dm0", "syst_year_dm1", "syst_year_dm10", "syst_year_dm11", "total","stat_highpT_bin1", "stat_highpT_bin2", "syst_highpT", "syst_highpT_extrap", "syst_highpT_bin1", "syst_highpT_bin2"]
+    SFSources_genuineLep=["genuineElectron_barrel", "genuineElectron_endcaps", "genuineMuon_etaLt0p4",
+        "genuineMuon_eta0p4to0p8", "genuineMuon_eta0p8to1p2", "genuineMuon_eta1p2to1p7", "genuineMuon_etaGt1p7" ]
+
 
     def __init__(self, period, config):
         jsonFile = TauCorrProducer.jsonPath.format(period)
@@ -50,11 +51,12 @@ class TauCorrProducer:
         return df, source_dict
 
     def getSF(self, df, nLegs, isCentral, return_variations):
-        sf_sources =TauCorrProducer.SFSources_tau+TauCorrProducer.SFSources_genuineLep if return_variations else []
+        sf_sources =TauCorrProducer.SFSources_tau+TauCorrProducer.SFSources_genuineLep
+        sf_scales = [up, down] if return_variations else []
         SF_branches = []
         for source in [ central ] + sf_sources:
             #for scale in getScales(source):
-            for scale in [central, up, down]:
+            for scale in [ central ] + sf_scales:
                 if source == central and scale != central: continue
                 if not isCentral and scale!= central: continue
                 syst_name = source+scale# if source != central else 'Central'
