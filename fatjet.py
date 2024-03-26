@@ -75,7 +75,12 @@ class FatJetCorrProducer:
     #Sources = []
     period = None
     def __init__(self, period,isData):
-        JEC_SF_path_period = FatJetCorrProducer.JEC_SF_path.format(period)
+        JEC_dir = directories_JEC[period]
+        JEC_SF_db = "Corrections/data/JECDatabase/textFiles/"
+
+        JER_dir = directories_JER[period]
+        JER_SF_db = "Corrections/data/JRDatabase/textFiles/"
+
         JEC_dir = directories_JEC[period]
         JER_dir = directories_JER[period]
 
