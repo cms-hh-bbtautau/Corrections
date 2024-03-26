@@ -51,6 +51,7 @@ regrouped_files_names = {
 class JetCorrProducer:
     JEC_SF_path = 'Corrections/data/JME/{}'
 
+
     jsonPath_btag = "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/BTV/{}/btagging.json.gz"
 
     initialized = False
@@ -62,28 +63,31 @@ class JetCorrProducer:
     def __init__(self, period,isData):
         JEC_SF_path_period = JetCorrProducer.JEC_SF_path.format(period)
         JEC_dir = directories_JEC[period]
+        JEC_SF_db = "Corrections/data/JECDatabase/textFiles/"
+
         JER_dir = directories_JER[period]
+        JER_SF_db = "Corrections/data/JRDatabase/textFiles/"
 
-        JEC_SF_txtPath_MC = f"{JEC_SF_path_period}/{JER_dir}_MC/{JER_dir}_MC_SF_AK4PFchs.txt"
-        JEC_PtRes_txtPath_MC = f"{JEC_SF_path_period}/{JER_dir}_MC/{JER_dir}_MC_PtResolution_AK4PFchs.txt"
-        JEC_PhiRes_txtPath_MC = f"{JEC_SF_path_period}/{JER_dir}_MC/{JER_dir}_MC_PhiResolution_AK4PFchs.txt"
-        JEC_EtaRes_txtPath_MC = f"{JEC_SF_path_period}/{JER_dir}_MC/{JER_dir}_MC_EtaResolution_AK4PFchs.txt"
+        JER_SF_txtPath_MC = f"{JER_SF_db}/{JER_dir}_MC/{JER_dir}_MC_SF_AK4PFchs.txt"
+        JER_PtRes_txtPath_MC = f"{JER_SF_db}/{JER_dir}_MC/{JER_dir}_MC_PtResolution_AK4PFchs.txt"
+        JER_PhiRes_txtPath_MC = f"{JER_SF_db}/{JER_dir}_MC/{JER_dir}_MC_PhiResolution_AK4PFchs.txt"
+        JER_EtaRes_txtPath_MC = f"{JER_SF_db}/{JER_dir}_MC/{JER_dir}_MC_EtaResolution_AK4PFchs.txt"
 
-        JES_Regouped_txtPath_MC = f"{JEC_SF_path_period}/{JEC_dir}/{regrouped_files_names[period]}"
+        JER_SF_txtPath_data = f"{JER_SF_db}/{JER_dir}_DATA/{JER_dir}_DATA_SF_AK4PFchs.txt"
+        JER_PtRes_txtPath_data = f"{JER_SF_db}/{JER_dir}_DATA/{JER_dir}_DATA_PtResolution_AK4PFchs.txt"
+        JER_PhiRes_txtPath_data = f"{JER_SF_db}/{JER_dir}_DATA/{JER_dir}_DATA_PhiResolution_AK4PFchs.txt"
+        JER_EtaRes_txtPath_data = f"{JER_SF_db}/{JER_dir}_DATA/{JER_dir}_DATA_EtaResolution_AK4PFchs.txt"
 
-        JEC_SF_txtPath_data = f"{JEC_SF_path_period}/{JER_dir}_DATA/{JER_dir}_DATA_SF_AK4PFchs.txt"
-        JEC_PtRes_txtPath_data = f"{JEC_SF_path_period}/{JER_dir}_DATA/{JER_dir}_DATA_PtResolution_AK4PFchs.txt"
-        JEC_PhiRes_txtPath_data = f"{JEC_SF_path_period}/{JER_dir}_DATA/{JER_dir}_DATA_PhiResolution_AK4PFchs.txt"
-        JEC_EtaRes_txtPath_data = f"{JEC_SF_path_period}/{JER_dir}_DATA/{JER_dir}_DATA_EtaResolution_AK4PFchs.txt"
+        JEC_Regouped_txtPath_MC = f"{JEC_SF_db}/{JEC_dir}/{regrouped_files_names[period]}"
 
         JetCorrProducer.isData = isData
         jsonFile_btag = JetCorrProducer.jsonPath_btag.format(period)
-        ptResolution = os.path.join(os.environ['ANALYSIS_PATH'],JEC_PtRes_txtPath_MC.format(period))
-        ptResolutionSF = os.path.join(os.environ['ANALYSIS_PATH'],JEC_SF_txtPath_MC.format(period))
-        JEC_Regrouped = os.path.join(os.environ['ANALYSIS_PATH'], JES_Regouped_txtPath_MC.format(period))
+        ptResolution = os.path.join(os.environ['ANALYSIS_PATH'],JER_PtRes_txtPath_MC.format(period))
+        ptResolutionSF = os.path.join(os.environ['ANALYSIS_PATH'],JER_SF_txtPath_MC.format(period))
+        JEC_Regrouped = os.path.join(os.environ['ANALYSIS_PATH'], JEC_Regouped_txtPath_MC.format(period))
         if JetCorrProducer.isData:
-            ptResolution = os.path.join(os.environ['ANALYSIS_PATH'],JEC_PtRes_txtPath_data.format(period))
-            ptResolutionSF = os.path.join(os.environ['ANALYSIS_PATH'],JEC_SF_txtPath_data.format(period))
+            ptResolution = os.path.join(os.environ['ANALYSIS_PATH'],JER_PtRes_txtPath_data.format(period))
+            ptResolutionSF = os.path.join(os.environ['ANALYSIS_PATH'],JER_SF_txtPath_data.format(period))
         if not JetCorrProducer.initialized:
             ROOT.gSystem.Load("libJetMETCorrectionsModules.so")
             ROOT.gSystem.Load("libCondFormatsJetMETObjects.so")
