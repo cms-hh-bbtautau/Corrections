@@ -83,18 +83,18 @@ class FatJetCorrProducer:
 
         JEC_dir = directories_JEC[period]
         JER_dir = directories_JER[period]
+        suffix =  "AK4PFchs" if period == "2017_UL" else "AK8PFPuppi"
+        JEC_SF_txtPath_MC = f"{JER_SF_db}/{JER_dir}_MC/{JER_dir}_MC_SF_{suffix}.txt"
+        JEC_PtRes_txtPath_MC = f"{JER_SF_db}/{JER_dir}_MC/{JER_dir}_MC_PtResolution_{suffix}.txt"
+        JEC_PhiRes_txtPath_MC = f"{JER_SF_db}/{JER_dir}_MC/{JER_dir}_MC_PhiResolution_{suffix}.txt"
+        JEC_EtaRes_txtPath_MC = f"{JER_SF_db}/{JER_dir}_MC/{JER_dir}_MC_EtaResolution_{suffix}.txt"
 
-        JEC_SF_txtPath_MC = f"{JEC_SF_path_period}/{JER_dir}_MC/{JER_dir}_MC_SF_AK8PFPuppi.txt"
-        JEC_PtRes_txtPath_MC = f"{JEC_SF_path_period}/{JER_dir}_MC/{JER_dir}_MC_PtResolution_AK8PFPuppi.txt"
-        JEC_PhiRes_txtPath_MC = f"{JEC_SF_path_period}/{JER_dir}_MC/{JER_dir}_MC_PhiResolution_AK8PFPuppi.txt"
-        JEC_EtaRes_txtPath_MC = f"{JEC_SF_path_period}/{JER_dir}_MC/{JER_dir}_MC_EtaResolution_AK8PFPuppi.txt"
+        JES_Regouped_txtPath_MC = f"{JEC_SF_db}/{JEC_dir}/{regrouped_files_names[period]}"
 
-        JES_Regouped_txtPath_MC = f"{JEC_SF_path_period}/{JEC_dir}/{regrouped_files_names[period]}"
-
-        JEC_SF_txtPath_data = f"{JEC_SF_path_period}/{JER_dir}_DATA/{JER_dir}_DATA_SF_AK8PFPuppi.txt"
-        JEC_PtRes_txtPath_data = f"{JEC_SF_path_period}/{JER_dir}_DATA/{JER_dir}_DATA_PtResolution_AK8PFPuppi.txt"
-        JEC_PhiRes_txtPath_data = f"{JEC_SF_path_period}/{JER_dir}_DATA/{JER_dir}_DATA_PhiResolution_AK8PFPuppi.txt"
-        JEC_EtaRes_txtPath_data = f"{JEC_SF_path_period}/{JER_dir}_DATA/{JER_dir}_DATA_EtaResolution_AK8PFPuppi.txt"
+        JEC_SF_txtPath_data = f"{JER_SF_db}/{JER_dir}_DATA/{JER_dir}_DATA_SF_{suffix}.txt"
+        JEC_PtRes_txtPath_data = f"{JER_SF_db}/{JER_dir}_DATA/{JER_dir}_DATA_PtResolution_{suffix}.txt"
+        JEC_PhiRes_txtPath_data = f"{JER_SF_db}/{JER_dir}_DATA/{JER_dir}_DATA_PhiResolution_{suffix}.txt"
+        JEC_EtaRes_txtPath_data = f"{JER_SF_db}/{JER_dir}_DATA/{JER_dir}_DATA_EtaResolution_{suffix}.txt"
 
         FatJetCorrProducer.isData = isData
         #jsonFile_btag = FatJetCorrProducer.jsonPath_btag.format(period)
